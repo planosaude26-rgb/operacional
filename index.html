@@ -93,7 +93,9 @@
         ];
 
         const FAQ_ITEMS = [
-            { q: 'Quando solicitar Carta de Permanência?', a: 'Sempre que o cliente possuir um plano de saúde anterior ativo ou cancelado recentemente (para aproveitamento ou redução de carência). Isso garante o aproveitamento de carências.' },
+            { q: 'Quando solicitar Carta de Permanência?', a: 'Sempre que o cliente possuir um plano de saúde anterior ativo ou cancelado recentemente. Isso garante o aproveitamento de carências.' },
+            { q: 'O que fazer em caso de pendência de documentos?', a: 'Sempre que faltar um documento no Checklist Inicial, o processo não deve ser cadastrado. Notifique o assessor imediatamente e aguarde o reenvio para iniciar a contagem do SLA.' },
+            { q: 'O que acontece em caso de pendência na análise da Operadora?', a: 'Se a operadora apontar uma exigência (como entrevista médica ou documento complementar), o prazo de implantação é pausado. Notifique o corretor e acompanhe a regularização para retomar o processo.' },
             { q: 'Qual o prazo máximo para cadastro?', a: 'O prazo padrão para cadastro de propostas no sistema é de até 12 horas úteis após o recebimento e validação inicial (checklist) dos documentos.' },
             { q: 'Quando ocorre a implantação do PME?', a: 'Ocorre após a análise da operadora (que leva até 20 dias úteis) e o aceite final do contrato, observando as regras de pagamento do primeiro boleto.' },
             { q: 'Quando ocorre a implantação do plano por Adesão?', a: 'Ocorrerá rigorosamente na data de vigência escolhida e estipulada em contrato, dependendo da administradora de benefícios.' },
@@ -240,14 +242,26 @@
                 </div>
             );
 
-            const CheckItem = ({ label }) => (
-                <label className="flex items-center p-4 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors group">
-                    <div className="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center mr-4 group-hover:border-purple-500 transition-colors">
-                        <i className="ph ph-check text-[16px] text-transparent group-hover:text-purple-500"></i>
-                    </div>
-                    <span className="text-gray-700 font-medium">{label}</span>
-                </label>
-            );
+            const CheckItem = ({ label }) => {
+                const [isChecked, setIsChecked] = useState(false);
+                
+                return (
+                    <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-colors group ${isChecked ? 'bg-purple-50 border-purple-200' : 'border-gray-100 hover:bg-gray-50'}`}>
+                        <input 
+                            type="checkbox" 
+                            className="hidden" 
+                            checked={isChecked}
+                            onChange={(e) => setIsChecked(e.target.checked)} 
+                        />
+                        <div className={`w-6 h-6 border-2 rounded flex items-center justify-center mr-4 transition-colors ${isChecked ? 'border-purple-600 bg-purple-600' : 'border-gray-300 group-hover:border-purple-500'}`}>
+                            <i className={`ph ph-check text-[16px] ${isChecked ? 'text-white' : 'text-transparent group-hover:text-purple-500'}`}></i>
+                        </div>
+                        <span className={`font-medium transition-colors ${isChecked ? 'text-purple-800' : 'text-gray-700'}`}>
+                            {label}
+                        </span>
+                    </label>
+                );
+            };
 
             return (
                 <div className="max-w-5xl mx-auto animate-fade-in">
