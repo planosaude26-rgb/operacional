@@ -7,17 +7,15 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons (Web Font) -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <!-- Babel (Para rodar JSX direto no navegador) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        /* Animações Customizadas */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -32,18 +30,31 @@
         .animate-fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
-        
-        /* Ajuste fino para os ícones */
         i.ph {
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
+        
+        /* Tema de scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-gray-900 font-sans overflow-hidden">
     
-    <!-- Contêiner principal do React -->
     <div id="root"></div>
 
     <script type="text/babel">
@@ -55,6 +66,7 @@
             { id: 'adesao', icon: 'ph-users', label: 'Fluxo Adesão' },
             { id: 'individual', icon: 'ph-user', label: 'Fluxo Individual' },
             { id: 'checklist', icon: 'ph-check-square', label: 'Checklist Documentos' },
+            { id: 'idades', icon: 'ph-calendar-check', label: 'Idades de Aceitação' },
             { id: 'kanban', icon: 'ph-kanban', label: 'Controle de Status' },
             { id: 'dashboard', icon: 'ph-chart-bar', label: 'Dashboard' },
             { id: 'alertas', icon: 'ph-warning', label: 'Alertas Importantes' },
@@ -62,6 +74,38 @@
             { id: 'faq', icon: 'ph-question', label: 'Perguntas Frequentes' },
             { id: 'final', icon: 'ph-shield-check', label: 'Indicadores Finais' }
         ];
+
+        const IDADES_DATA = {
+            'Adesão': [
+                { uf: 'SP', op: 'Blue Med', tit: '12 a 65 anos', filho: 'Até 23 anos', irmao: 'Não se aplica', cons: 'Não se aplica' },
+                { uf: 'SP', op: 'GNDI (Hapvida)', tit: '0 a 65 anos', filho: 'Até 24 anos incomp.', irmao: 'Até 64 anos', cons: 'Pai, Mãe, Tio, Sobrinho, Neto, Avô' },
+                { uf: 'SP', op: 'Hapvida (Limeira/SJC)', tit: '05 a 65 anos', filho: 'Até 24 anos incomp.', irmao: 'Até 66 anos', cons: 'Pai, Mãe, Avô, Neto, Irmão, Tio, Sobrinho' },
+                { uf: 'SP', op: 'Sami Saúde', tit: '18 a 64 anos', filho: '7 a 40 anos', irmao: 'Não se aplica', cons: 'Não se aplica' },
+                { uf: 'SP', op: 'São Cristovão', tit: '18 a 65 anos', filho: 'Até 39 anos', irmao: 'Até 65 anos', cons: 'Pai, Mãe, Sogro, Neto, Avós' },
+                { uf: 'RJ', op: 'Assim Saúde', tit: '12 a 64 anos', filho: 'Até 39 anos', irmao: 'Até 58 anos', cons: 'Tabela Geral (Pai, Mãe, Neto, etc)' },
+                { uf: 'RJ', op: 'Klini Saúde', tit: '6 a 75 anos', filho: 'Até 99 anos', irmao: 'Até 99 anos', cons: 'Pai, Mãe, Padrasto, Neto, Sobrinho...' },
+                { uf: 'MG', op: 'Unimed BH / JF', tit: '02 a 69 anos', filho: 'Até 30/35 anos', irmao: 'Menor de 18 anos', cons: 'Neto até 24 anos / Pais' },
+                { uf: 'ES', op: 'São Bernardo Samp', tit: '08 a 58 anos', filho: 'Até 58 anos', irmao: 'Até 58 anos', cons: 'Pai e Mãe até 58 anos' },
+                { uf: 'PR', op: 'Humana', tit: '08 a 68 anos', filho: 'Até 68 anos', irmao: 'Irmão', cons: 'Irmãos, Sobrinhos e Netos' },
+                { uf: 'PR, SC', op: 'Hapvida Clinipam', tit: '05 a 65 anos', filho: 'Até 24 anos incomp.', irmao: 'Até 66 anos', cons: 'Pai, Mãe, Avô, Neto, Tio...' },
+                { uf: 'RS', op: 'Onmed', tit: '06 a 65 anos', filho: 'Até 35 anos', irmao: 'Menor de 18 anos', cons: 'Pai ou Mãe' },
+                { uf: 'AL, BA, CE, MA, PB, PE, RN, SE', op: 'Hapvida (Geral)', tit: '05 a 65 anos', filho: 'Até 24 anos incomp.', irmao: 'Até 66 anos', cons: 'Pai, Mãe, Avô, Neto, Tio, Sobrinho' },
+                { uf: 'Nacional', op: 'Sulamérica', tit: '18 a 65 anos', filho: 'Solteiro qlq. idade', irmao: 'Não se aplica', cons: 'Não se aplica' },
+                { uf: 'Nacional', op: 'Seguros Unimed', tit: '18 a 74 anos', filho: 'Até 28/29 anos', irmao: 'Não se aplica', cons: 'Neto até 21 anos (ELO)' },
+                { uf: 'Nacional', op: 'MedSênior', tit: '44+ anos', filho: '44+ anos', irmao: '44+ anos', cons: '44+ anos (Tia, Sogra, Pai...)' }
+            ],
+            'PME': [
+                { uf: 'Nacional', op: 'SulAmérica', tit: 'Até 64 anos incomp.', filho: 'Até 44 anos incomp.', irmao: 'Até 64 anos incomp.', cons: 'Agregados: Pais (até 64) e Netos (até 17)' },
+                { uf: 'Nacional', op: 'Alice', tit: 'Até 69 anos', filho: 'Até 69 anos', irmao: 'Até 69 anos', cons: 'Agregados: Pais/Sogros (até 69), Sobrinhos/Netos/Genro/Nora (até 45)' },
+                { uf: 'Nacional', op: 'Amil', tit: 'Até 69 anos', filho: 'Até 69 anos incomp.', irmao: 'Até 69 anos', cons: 'Agregados: Pais/Padrasto (até 69), Sobrinhos/Netos/Genro/Nora (até 69)' },
+                { uf: 'RJ', op: 'Assim Saúde', tit: 'Até 69 anos', filho: 'Até 39 anos incomp.', irmao: 'Sim (idade n/ inf.)', cons: 'Pai/Mãe, Padrasto, Sobrinho, Neto, Genro/Nora, Cunhado' },
+                { uf: 'RJ', op: 'Leve Saúde', tit: 'Sem limite de idade*', filho: 'Sim (idade n/ inf.)', irmao: 'Sim (idade n/ inf.)', cons: 'Pai/Mãe, Padrasto, Sobrinho, Neto, Genro/Nora, Primo, Avós' },
+                { uf: 'Várias', op: 'Hapvida', tit: 'Até 74 anos', filho: 'Até 53 anos', irmao: 'Restrito por plano', cons: 'Restrito por plano' },
+                { uf: 'Nacional', op: 'Bradesco', tit: 'Até 69 anos incomp.', filho: 'Até 39 anos incomp.', irmao: 'Até 67 anos*', cons: 'Agregados*: Pais/Sogros (67), Netos (18), Sobrinhos/Genro (45)' },
+                { uf: 'Nacional', op: 'Omint', tit: 'Até 69 anos (limitado)', filho: 'Sim (idade n/ inf.)', irmao: 'Membros PME familiar', cons: 'Pai/Mãe (Análise p/ >100 vidas)' },
+                { uf: 'Nacional', op: 'Porto Saúde', tit: 'Até 72/75 anos*', filho: 'Até 45 anos', irmao: 'Até 45 anos', cons: 'Pai/Mãe/Sogro (72), Neto/Genro/Sobrinho (45)' }
+            ]
+        };
 
         const FLOW_PME = [
             { title: 'Recebimento da Proposta', time: 'Imediato', desc: 'Entrada via sistema ou e-mail corporativo.' },
@@ -105,7 +149,6 @@
         const KANBAN_COLS = ['Recebida', 'Check List', 'Cadastro', 'Assinatura', 'Em Análise', 'Pendência', 'Aguardando Implantação', 'Implantada'];
 
         const copyToClipboard = (text, setCopiedId, id) => {
-            // Usa execCommand como fallback em iframes ou caso API moderna falhe
             const fallbackCopy = (textToCopy) => {
                 const textArea = document.createElement("textarea");
                 textArea.value = textToCopy;
@@ -375,6 +418,104 @@
             );
         };
 
+        const AgesScreen = () => {
+            const [activeTab, setActiveTab] = useState('PME');
+            const [searchTerm, setSearchTerm] = useState('');
+
+            // Pega o array correto baseado na aba ativa, e filtra
+            const currentData = IDADES_DATA[activeTab] || [];
+            const filteredData = currentData.filter(item => 
+                item.uf.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                item.op.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            return (
+                <div className="max-w-6xl mx-auto animate-fade-in">
+                    <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200">
+                        <div className="p-3 bg-purple-100 text-purple-700 rounded-xl flex items-center justify-center">
+                            <i className="ph ph-calendar-check text-[28px]"></i>
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-800">Idades de Aceitação</h2>
+                            <p className="text-gray-500 mt-1">Consulte as regras de limite de idade por operadora e estado.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex space-x-2 mb-8 bg-gray-100 p-1.5 rounded-2xl w-fit">
+                        {['PME', 'Adesão', 'Individual'].map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => { setActiveTab(tab); setSearchTerm(''); }}
+                                className={`px-8 py-3 rounded-xl font-semibold transition-all ${activeTab === tab ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+
+                    {activeTab === 'Adesão' || activeTab === 'PME' ? (
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                            {/* Barra de Busca */}
+                            <div className="mb-6 relative">
+                                <i className="ph ph-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-[20px]"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="Pesquise por UF (ex: SP, RJ) ou Operadora (ex: Sulamérica)..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                                />
+                            </div>
+
+                            <div className="overflow-x-auto rounded-xl border border-gray-100">
+                                <table className="w-full text-left border-collapse min-w-[800px]">
+                                    <thead>
+                                        <tr className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider">
+                                            <th className="p-4 font-bold border-b border-gray-100">UF / Região</th>
+                                            <th className="p-4 font-bold border-b border-gray-100">Operadora</th>
+                                            <th className="p-4 font-bold border-b border-gray-100">Titular</th>
+                                            <th className="p-4 font-bold border-b border-gray-100">Filho</th>
+                                            <th className="p-4 font-bold border-b border-gray-100">Irmão</th>
+                                            <th className="p-4 font-bold border-b border-gray-100">Consanguíneos / Agregados</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-gray-700 text-sm">
+                                        {filteredData.length > 0 ? filteredData.map((row, idx) => (
+                                            <tr key={idx} className="hover:bg-purple-50/50 transition-colors border-b border-gray-50 last:border-0">
+                                                <td className="p-4 font-semibold text-gray-900"><span className="bg-gray-100 px-2 py-1 rounded-md text-xs">{row.uf}</span></td>
+                                                <td className="p-4 font-bold text-purple-700 whitespace-nowrap">{row.op}</td>
+                                                <td className="p-4">{row.tit}</td>
+                                                <td className="p-4">{row.filho}</td>
+                                                <td className="p-4">{row.irmao}</td>
+                                                <td className="p-4 text-xs text-gray-500 leading-relaxed max-w-sm">{row.cons}</td>
+                                            </tr>
+                                        )) : (
+                                            <tr>
+                                                <td colSpan="6" className="p-8 text-center text-gray-400">
+                                                    Nenhuma regra encontrada para "{searchTerm}".
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-4">* Resumo baseado nas diretrizes comerciais. Sujeito a alterações pela operadora e campanhas vigentes.</p>
+                        </div>
+                    ) : (
+                        <div className="bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center flex flex-col items-center justify-center min-h-[300px]">
+                            <div className="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mb-4">
+                                <i className="ph ph-wrench text-[32px]"></i>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-2">Tabela em Atualização</h3>
+                            <p className="text-gray-500 max-w-md">
+                                As regras de aceitação de idade para planos <strong>{activeTab}</strong> estão sendo mapeadas e serão disponibilizadas na próxima atualização do manual.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
         const KanbanScreen = ({ cards, setCards }) => {
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [draggedCardId, setDraggedCardId] = useState(null);
@@ -464,7 +605,7 @@
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-x-auto pb-4 custom-scrollbar">
+                    <div className="flex-1 overflow-x-auto pb-4">
                         <div className="flex gap-4 min-w-max h-full">
                             {KANBAN_COLS.map(col => (
                                 <div 
@@ -503,18 +644,18 @@
                                                             <button 
                                                                 onMouseDown={(e) => e.stopPropagation()} 
                                                                 onClick={(e) => { e.stopPropagation(); handleEditClick(card); }}
-                                                                className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors flex items-center justify-center"
+                                                                className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
                                                                 title="Editar"
                                                             >
-                                                                <i className="ph ph-pencil-simple text-[16px]"></i>
+                                                                <i className="ph ph-pencil-simple text-[14px]"></i>
                                                             </button>
                                                             <button 
                                                                 onMouseDown={(e) => e.stopPropagation()} 
                                                                 onClick={(e) => { e.stopPropagation(); handleDeleteCard(card.id); }}
-                                                                className="p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors flex items-center justify-center"
+                                                                className="p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
                                                                 title="Excluir"
                                                             >
-                                                                <i className="ph ph-trash text-[16px]"></i>
+                                                                <i className="ph ph-trash text-[14px]"></i>
                                                             </button>
                                                         </div>
                                                     </div>
@@ -522,8 +663,8 @@
 
                                                 <div className="text-xs text-gray-500 mb-3">{card.op}</div>
                                                 <div className="flex justify-between items-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-50">
-                                                    <span className="flex items-center gap-1"><i className="ph ph-user text-[14px]"></i> {card.resp}</span>
-                                                    <span className="flex items-center gap-1"><i className="ph ph-clock text-[14px]"></i> {card.date}</span>
+                                                    <span className="flex items-center gap-1"><i className="ph ph-user text-[12px]"></i> {card.resp}</span>
+                                                    <span className="flex items-center gap-1"><i className="ph ph-clock text-[12px]"></i> {card.date}</span>
                                                 </div>
                                             </div>
                                         ))}
@@ -613,11 +754,7 @@
                         <h2 className="text-3xl font-bold text-gray-800">Dashboard Executivo</h2>
                         {totalPropostas > 0 && (
                             <button 
-                                onClick={() => {
-                                    if(window.confirm('Tem certeza que deseja apagar todas as propostas?')) {
-                                        setCards([]);
-                                    }
-                                }}
+                                onClick={() => { if(window.confirm('Tem certeza que deseja apagar todas as propostas?')) setCards([]); }}
                                 className="flex items-center gap-2 text-sm text-rose-600 bg-rose-50 hover:bg-rose-100 px-4 py-2.5 rounded-xl font-semibold transition-colors border border-rose-100 shadow-sm"
                             >
                                 <i className="ph ph-trash text-[16px]"></i>
@@ -631,7 +768,7 @@
                             { title: 'Total de Propostas', value: totalPropostas, sub: 'Geral', icon: 'ph-file-text', color: 'text-purple-600', bg: 'bg-purple-100' },
                             { title: 'Implantadas', value: implantadas, sub: 'Concluídas', icon: 'ph-check-circle', color: 'text-emerald-600', bg: 'bg-emerald-100' },
                             { title: 'Pendências Doc.', value: pendencias, sub: 'Ação necessária', icon: 'ph-warning-circle', color: 'text-rose-600', bg: 'bg-rose-100' },
-                            { title: 'Tempo Médio', value: totalPropostas > 0 ? '4.2' : '0', sub: 'Dias úteis', icon: 'ph-activity', color: 'text-black', bg: 'bg-gray-200' },
+                            { title: 'Tempo Médio', value: totalPropostas > 0 ? '4.2' : '0', sub: 'Dias úteis', icon: 'ph-activity', color: 'text-gray-600', bg: 'bg-gray-200' },
                         ].map((kpi, i) => (
                             <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5">
                                 <div className={`w-14 h-14 ${kpi.bg} ${kpi.color} rounded-xl flex items-center justify-center shrink-0`}>
@@ -653,7 +790,7 @@
                                 {[
                                     { label: 'Em Análise Operadora', val: getStatusPercent('Em Análise'), color: 'bg-purple-500' },
                                     { label: 'Aguardando Assinatura', val: getStatusPercent('Assinatura'), color: 'bg-amber-400' },
-                                    { label: 'Em Cadastro', val: getStatusPercent('Cadastro'), color: 'bg-black' },
+                                    { label: 'Em Cadastro', val: getStatusPercent('Cadastro'), color: 'bg-gray-700' },
                                     { label: 'Checklist Inicial', val: getStatusPercent('Check List'), color: 'bg-gray-400' },
                                 ].map(item => (
                                     <div key={item.label}>
@@ -691,18 +828,23 @@
 
             const alerts = [
                 { id: 1, title: 'Checklist Incompleto', desc: 'Nunca cadastrar proposta no sistema da operadora sem o checklist 100% validado.', icon: 'ph-check-square' },
-                { id: 2, title: 'Contatos Corretos', desc: 'Sempre conferir minunciosamente E-mail e Telefone do titular para evitar devoluções.', icon: 'ph-user' },
+                { id: 2, title: 'Contatos Corretos', desc: 'Sempre conferir minuciosamente E-mail e Telefone do titular para evitar devoluções.', icon: 'ph-user' },
                 { id: 3, title: 'Carta de Permanência', desc: 'Solicitar Carta de Permanência obrigatória sempre que o cliente declarar plano anterior.', icon: 'ph-file-text' },
                 { id: 4, title: 'Vínculo de Dependentes', desc: 'Conferir com rigor o documento que comprova o vínculo de todos os dependentes incluídos.', icon: 'ph-users' },
                 { id: 5, title: 'Validação de Assinaturas', desc: 'Validar a assinatura (física ou digital) antes de realizar o upload final na plataforma.', icon: 'ph-file-text' },
-                { id: 6, title: 'Pagamento de Boleto', desc: 'Conferir o pagamento do primeiro boleto antes de confirmar a implantação (PME e Individual).', icon: 'ph-warning' },
+                { id: 6, title: 'Pagamento de Boleto', desc: 'Conferir o pagamento do primeiro boleto antes de confirmar a implantação (PME e Individual).', icon: 'ph-warning-circle' },
             ];
+
+            const handleCopy = (alerta) => {
+                const textToCopy = `[ALERTA OPERACIONAL]: ${alerta.title} - ${alerta.desc}`;
+                copyToClipboard(textToCopy, setCopiedId, alerta.id);
+            };
 
             return (
                 <div className="max-w-5xl mx-auto animate-fade-in">
                     <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200">
                         <div className="p-3 bg-rose-100 text-rose-600 rounded-xl">
-                            <i className="ph ph-warning text-[28px]"></i>
+                            <i className="ph ph-warning-circle text-[28px]"></i>
                         </div>
                         <div>
                             <h2 className="text-3xl font-bold text-gray-800">Alertas Importantes</h2>
@@ -712,28 +854,25 @@
 
                     <div className="grid md:grid-cols-2 gap-6">
                         {alerts.map((al) => (
-                            <div key={al.id} className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex flex-col hover:shadow-md transition-shadow group relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex gap-4">
-                                        <div className="bg-rose-50 text-rose-600 w-12 h-12 rounded-full flex items-center justify-center shrink-0 group-hover:bg-rose-500 group-hover:text-white transition-colors">
-                                            <i className={`ph ${al.icon} text-[24px]`}></i>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-800 text-lg">{al.title}</h3>
-                                        </div>
+                            <div key={al.id} className="bg-white border-l-4 border-rose-500 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow group relative">
+                                <button 
+                                    onClick={() => handleCopy(al)}
+                                    className={`absolute top-4 right-4 p-2 rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold
+                                        ${copiedId === al.id ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700'}`}
+                                    title="Copiar Alerta"
+                                >
+                                    <i className={`ph ${copiedId === al.id ? 'ph-check-circle text-[16px]' : 'ph-copy text-[16px]'}`}></i>
+                                    {copiedId === al.id ? 'Copiado!' : 'Copiar'}
+                                </button>
+                                
+                                <div className="flex gap-4 mt-2">
+                                    <div className="bg-rose-50 text-rose-600 w-12 h-12 rounded-full flex items-center justify-center shrink-0 group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                                        <i className={`ph ${al.icon} text-[24px]`}></i>
                                     </div>
-                                    <button 
-                                        onClick={() => copyToClipboard(`[ALERTA OPERACIONAL]: ${al.title} - ${al.desc}`, setCopiedId, al.id)}
-                                        className={`p-2 rounded-lg transition-all flex items-center justify-center
-                                            ${copiedId === al.id ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-50 text-gray-400 hover:text-purple-600 hover:bg-purple-50'}`}
-                                        title={copiedId === al.id ? 'Copiado!' : 'Copiar texto para enviar'}
-                                    >
-                                        <i className={`ph ${copiedId === al.id ? 'ph-check-circle' : 'ph-copy'} text-[20px]`}></i>
-                                    </button>
-                                </div>
-                                <div className="pl-16">
-                                    <p className="text-gray-600">{al.desc}</p>
+                                    <div className="pr-16">
+                                        <h3 className="font-bold text-gray-800 text-lg mb-2">{al.title}</h3>
+                                        <p className="text-gray-600 leading-relaxed">{al.desc}</p>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -743,64 +882,44 @@
         };
 
         const MessagesScreen = () => {
-            const [activeTab, setActiveTab] = useState('Status');
             const [copiedId, setCopiedId] = useState(null);
+            const [activeCategory, setActiveCategory] = useState('status');
 
-            const [messagesData, setMessagesData] = useState({
-                status1: "Olá! A proposta do cliente [Nome do Cliente] acaba de entrar em análise na operadora. O prazo estimado é de até [Prazo] dias úteis. Qualquer novidade, aviso você!",
-                status2: "Boa tarde! Informo que a proposta [Nome do Cliente] foi aprovada e já está implantada. O plano está ativo e pronto para uso.",
-                status3: "Olá! O cadastro da proposta de [Nome do Cliente] foi concluído no sistema. Agora, precisamos que o cliente realize a assinatura [física/digital] do contrato no link enviado. Fico no aguardo para darmos andamento!",
-                status4: "Boa tarde! A análise da proposta de [Nome do Cliente] foi finalizada. Para que a implantação seja efetivada, precisamos da confirmação de pagamento do boleto de adesão/primeira parcela. Pode me enviar o comprovante assim que o cliente pagar?",
-                status5: "Olá! Recebemos a documentação de [Nome do Cliente]. O checklist inicial está em andamento (prazo de até 2 horas úteis). Retorno em breve!",
-                status6: "Boa tarde! O boleto de adesão/1ª parcela da proposta de [Nome do Cliente] já foi gerado e enviado para o e-mail cadastrado. Vencimento programado para: [Data].",
+            const initialMessages = [
+                // STATUS KANBAN
+                { id: 'm1', cat: 'status', title: 'Aguardando Checklist Inicial', text: 'Olá, [Nome do Assessor]! Recebemos a proposta de [Nome do Cliente]. Por favor, envie os documentos pendentes do checklist inicial para darmos andamento ao cadastro.' },
+                { id: 'm2', cat: 'status', title: 'Em Análise na Operadora', text: 'Olá! A proposta de [Nome do Cliente] foi cadastrada e enviada para análise da operadora. O prazo padrão é de até 20 dias úteis. Avisaremos assim que tivermos o retorno!' },
+                { id: 'm3', cat: 'status', title: 'Implantação Concluída', text: 'Excelente notícia! A implantação do plano de [Nome do Cliente] foi concluída com sucesso. O plano já encontra-se ativo.' },
+                { id: 'm7', cat: 'status', title: 'Aguardando Assinatura do Cliente', text: 'Olá! O cadastro da proposta de [Nome do Cliente] foi finalizado. Para enviarmos para a análise da operadora, precisamos que o cliente realize a assinatura digital. Pode reforçar com ele?' },
+                { id: 'm8', cat: 'status', title: 'Aguardando Pagamento do Boleto', text: 'A proposta de [Nome do Cliente] foi aprovada! A implantação final está aguardando apenas a confirmação de pagamento do primeiro boleto bancário.' },
+                { id: 'm12', cat: 'status', title: 'Documentos Recepcionados', text: 'Olá! Confirmamos a recepção dos documentos da proposta de [Nome do Cliente]. Iniciamos a conferência do checklist e o prazo de SLA de cadastro começou a contar.' },
+                { id: 'm13', cat: 'status', title: 'Boleto Gerado/Enviado', text: 'Olá! O primeiro boleto da proposta de [Nome do Cliente] foi gerado e enviado ao e-mail cadastrado. Lembre o cliente de efetuar o pagamento até o vencimento.' },
+                { id: 'm14', cat: 'status', title: 'Portabilidade Aprovada', text: 'Ótima notícia! A solicitação de portabilidade de carências de [Nome do Cliente] foi aprovada pela operadora. Seguiremos com o fluxo de implantação.' },
                 
-                alerta1: "Atenção: A proposta de [Nome do Cliente] apresentou uma pendência documental. Falta enviar: [Descrever a pendência]. Por favor, me envie o quanto antes para resolvermos.",
-                alerta2: "Olá! Notamos que o cliente [Nome do Cliente] possui plano anterior. É imprescindível o envio da Carta de Permanência atualizada para garantirmos o aproveitamento das carências.",
-                alerta3: "Atenção: O documento de vínculo [do titular/dependente] na proposta de [Nome do Cliente] é inválido ou está desatualizado. Precisamos de um documento aceito (ex: FGTS, eSocial ou contracheque recente).",
-                alerta4: "Olá! Identificamos uma divergência ou ausência na assinatura da proposta de [Nome do Cliente]. Precisamos providenciar uma nova assinatura com urgência para evitar a devolução pela operadora.",
-                alerta5: "Atenção: Está faltando a selfie do titular segurando o documento de identidade (RG/CNH) para a proposta de [Nome do Cliente]. Este item é obrigatório para a análise de risco da operadora.",
-                alerta6: "Atenção: A operadora apontou divergência na Declaração de Saúde da proposta de [Nome do Cliente]. Será necessário realizar a Entrevista Médica Qualificada. Por favor, avise o cliente que haverá contato telefônico.",
-                alerta7: "Olá! O CNPJ da empresa [Nome da Empresa] consta como Inapto/Baixado na Receita Federal. Precisamos da regularização junto ao contador para conseguirmos seguir com a implantação PME.",
-                alerta8: "Atenção: Identificamos que o comprovante de residência enviado para [Nome do Cliente] não é válido (muito antigo ou em nome de terceiros). Precisamos de uma conta de consumo (água, luz, gás) dos últimos 90 dias.",
-                alerta9: "Olá! O beneficiário [Nome do Dependente/Titular] está fora da regra de aceitação por idade para a operadora escolhida. Precisamos verificar um produto alternativo ou solicitar exceção comercial.",
-                alerta10: "Olá! Durante o checklist inicial da documentação de [Nome do Cliente], identificamos que falta enviar ou está ilegível: [Listar os documentos pendentes]. Fico no aguardo do reenvio para conseguirmos seguir com o cadastro sistêmico.",
-                alerta11: "Atenção! A proposta de [Nome do Cliente] entrou em exigência durante a fase de análise da operadora. O motivo apontado foi: [Descrever a exigência da operadora]. Precisamos regularizar essa pendência o quanto antes para retomarmos a contagem do prazo de implantação."
-            });
+                // PENDÊNCIAS / ALERTAS
+                { id: 'm4', cat: 'alerta', title: 'Pendência: Carta de Permanência', text: 'Aviso de Pendência: Identificamos que [Nome do Cliente] possui plano anterior. Para solicitar o aproveitamento de carências, é obrigatório o envio da Carta de Permanência atualizada.' },
+                { id: 'm5', cat: 'alerta', title: 'Pendência: Comprovante de Vínculo', text: 'Aviso de Pendência: O documento de vínculo enviado para o dependente [Nome do Dependente] não é válido. Por favor, enviar certidão de nascimento ou casamento atualizada.' },
+                { id: 'm6', cat: 'alerta', title: 'Exigência da Operadora', text: 'Atenção! A operadora apontou a seguinte exigência durante a análise: [Descrever a exigência, ex: entrevista médica]. O prazo de implantação fica pausado até a regularização.' },
+                { id: 'm9', cat: 'alerta', title: 'Documento de Vínculo Inválido (PME/Adesão)', text: 'Aviso de Pendência: O comprovante de vínculo do funcionário/associado [Nome do Titular] com a empresa/entidade está ilegível ou desatualizado. Favor enviar cópia atualizada (eSocial, FGTS ou holerite recente).' },
+                { id: 'm10', cat: 'alerta', title: 'Problema na Assinatura', text: 'Aviso de Pendência: A assinatura no contrato/Dps de [Nome do Cliente] apresentou divergência em relação ao documento pessoal. É necessário coletar uma nova assinatura conforme o documento (ou digital).' },
+                { id: 'm11', cat: 'alerta', title: 'Falta de Selfie (Biometria Facial)', text: 'Aviso de Pendência: A operadora exige a "Selfie" do titular segurando o documento de identificação ao lado do rosto. Sem este arquivo, não podemos prosseguir com o cadastro de [Nome do Cliente].' },
+                { id: 'm15', cat: 'alerta', title: 'Divergência na Declaração de Saúde', text: 'Aviso de Pendência: A operadora identificou uma divergência na Declaração de Saúde de [Nome do Cliente]. Será necessário agendar uma Entrevista Médica Qualificada. O SLA ficará pausado.' },
+                { id: 'm16', cat: 'alerta', title: 'CNPJ Irregular ou Inativo', text: 'Aviso de Pendência (PME): Constatamos que o CNPJ da empresa [Nome da Empresa] encontra-se irregular/baixado na Receita Federal. Regularize a situação para seguirmos com o cadastro.' },
+                { id: 'm17', cat: 'alerta', title: 'Comprovante de Endereço Inválido', text: 'Aviso de Pendência: O comprovante de residência enviado em nome de [Nome do Cliente] possui mais de 90 dias ou não está em nome do titular/cônjuge. Favor enviar um atualizado.' },
+                { id: 'm18', cat: 'alerta', title: 'Regra de Idade de Aceitação', text: 'Aviso de Pendência: O beneficiário [Nome do Beneficiário] ultrapassa a idade limite de aceitação da operadora para este tipo de contratação. Por favor, verificar as regras de Idade.' }
+            ];
+
+            const [messagesState, setMessagesState] = useState(initialMessages);
 
             const handleTextChange = (id, newText) => {
-                setMessagesData(prev => ({ ...prev, [id]: newText }));
+                setMessagesState(prev => prev.map(m => m.id === id ? { ...m, text: newText } : m));
             };
 
-            const MessageCard = ({ id, title, type }) => (
-                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                    <div className={`absolute top-0 left-0 w-1 h-full ${type === 'status' ? 'bg-purple-500' : 'bg-rose-500'}`}></div>
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
-                            <i className={`ph ${type === 'status' ? 'ph-info' : 'ph-warning-circle'} text-[22px] ${type === 'status' ? 'text-purple-600' : 'text-rose-600'}`}></i>
-                            {title}
-                        </h3>
-                        <button 
-                            onClick={() => copyToClipboard(messagesData[id], setCopiedId, id)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                                copiedId === id 
-                                ? 'bg-emerald-100 text-emerald-700' 
-                                : 'bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-700'
-                            }`}
-                        >
-                            <i className={`ph ${copiedId === id ? 'ph-check-circle' : 'ph-copy'} text-[18px]`}></i>
-                            {copiedId === id ? 'Copiado!' : 'Copiar'}
-                        </button>
-                    </div>
-                    <textarea 
-                        value={messagesData[id]}
-                        onChange={(e) => handleTextChange(id, e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-300 resize-y min-h-[100px] text-sm"
-                    ></textarea>
-                    <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-                        <i className="ph ph-pencil-simple"></i> Você pode editar o texto acima antes de copiar.
-                    </p>
-                </div>
-            );
+            const handleCopyMessage = (msg) => {
+                copyToClipboard(msg.text, setCopiedId, msg.id);
+            };
+
+            const filteredMessages = messagesState.filter(m => m.cat === activeCategory);
 
             return (
                 <div className="max-w-5xl mx-auto animate-fade-in">
@@ -810,47 +929,53 @@
                         </div>
                         <div>
                             <h2 className="text-3xl font-bold text-gray-800">Mensagens Prontas</h2>
-                            <p className="text-gray-500 mt-1">Templates editáveis para comunicação ágil com o assessor.</p>
+                            <p className="text-gray-500 mt-1">Edite os campos e copie as mensagens padronizadas para enviar aos assessores.</p>
                         </div>
                     </div>
 
                     <div className="flex space-x-2 mb-8 bg-gray-100 p-1.5 rounded-2xl w-fit">
-                        {['Status', 'Alertas'].map(tab => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={`px-8 py-3 rounded-xl font-semibold transition-all ${activeTab === tab ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
-                            >
-                                {tab}
-                            </button>
-                        ))}
+                        <button
+                            onClick={() => setActiveCategory('status')}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${activeCategory === 'status' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                        >
+                            <i className="ph ph-kanban text-[18px]"></i> Aviso de Status
+                        </button>
+                        <button
+                            onClick={() => setActiveCategory('alerta')}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${activeCategory === 'alerta' ? 'bg-white text-rose-600 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                        >
+                            <i className="ph ph-warning-circle text-[18px]"></i> Alertas / Pendências
+                        </button>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
-                        {activeTab === 'Status' ? (
-                            <>
-                                <MessageCard id="status5" title="Recepção e Checklist" type="status" />
-                                <MessageCard id="status1" title="Início de Análise" type="status" />
-                                <MessageCard id="status3" title="Aguardando Assinatura" type="status" />
-                                <MessageCard id="status6" title="Boleto Gerado/Enviado" type="status" />
-                                <MessageCard id="status4" title="Aguardando Pagamento" type="status" />
-                                <MessageCard id="status2" title="Proposta Implantada" type="status" />
-                            </>
-                        ) : (
-                            <>
-                                <MessageCard id="alerta1" title="Pendência Genérica" type="alerta" />
-                                <MessageCard id="alerta10" title="Pendência de Documentos (Checklist)" type="alerta" />
-                                <MessageCard id="alerta11" title="Pendência na Análise da Operadora" type="alerta" />
-                                <MessageCard id="alerta2" title="Falta Carta de Permanência" type="alerta" />
-                                <MessageCard id="alerta3" title="Vínculo Inválido" type="alerta" />
-                                <MessageCard id="alerta8" title="Comp. Residência Inválido" type="alerta" />
-                                <MessageCard id="alerta4" title="Problema na Assinatura" type="alerta" />
-                                <MessageCard id="alerta5" title="Falta de Selfie (Biometria)" type="alerta" />
-                                <MessageCard id="alerta6" title="Divergência (Entrevista Médica)" type="alerta" />
-                                <MessageCard id="alerta7" title="CNPJ Irregular (PME)" type="alerta" />
-                                <MessageCard id="alerta9" title="Idade Fora da Regra" type="alerta" />
-                            </>
-                        )}
+                        {filteredMessages.map((msg) => (
+                            <div key={msg.id} className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden flex flex-col hover:border-purple-300 transition-colors">
+                                <div className={`px-4 py-3 border-b border-gray-100 flex items-center gap-2 font-bold
+                                    ${msg.cat === 'status' ? 'bg-purple-50 text-purple-800' : 'bg-rose-50 text-rose-800'}`}>
+                                    <i className={`ph ${msg.cat === 'status' ? 'ph-info' : 'ph-warning'} text-[18px]`}></i>
+                                    {msg.title}
+                                </div>
+                                <div className="p-4 flex-1 flex flex-col">
+                                    <textarea 
+                                        className="w-full h-32 p-3 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white resize-none transition-all"
+                                        value={msg.text}
+                                        onChange={(e) => handleTextChange(msg.id, e.target.value)}
+                                        title="Edite os dados entre colchetes antes de copiar."
+                                    />
+                                    <button 
+                                        onClick={() => handleCopyMessage(msg)}
+                                        className={`mt-4 w-full py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all
+                                            ${copiedId === msg.id 
+                                                ? 'bg-emerald-500 text-white shadow-md' 
+                                                : 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md'}`}
+                                    >
+                                        <i className={`ph ${copiedId === msg.id ? 'ph-check-circle' : 'ph-copy'} text-[18px]`}></i>
+                                        {copiedId === msg.id ? 'Mensagem Copiada!' : 'Copiar Mensagem'}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             );
@@ -876,7 +1001,7 @@
                                     <h3 className={`font-bold pr-8 ${openIdx === idx ? 'text-purple-700' : 'text-gray-700'}`}>
                                         {item.q}
                                     </h3>
-                                    <i className={`ph ph-caret-down text-[20px] shrink-0 transition-transform duration-300 ${openIdx === idx ? 'rotate-180 text-purple-600' : 'text-gray-400'}`}></i>
+                                    <i className={`ph ph-caret-down shrink-0 transition-transform duration-300 ${openIdx === idx ? 'rotate-180 text-purple-600' : 'text-gray-400'}`}></i>
                                 </button>
                                 <div className={`px-6 pb-6 text-gray-600 overflow-hidden transition-all duration-300 ${openIdx === idx ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 pb-0'}`}>
                                     <div className="pt-2 border-t border-gray-100 mt-2">
@@ -993,7 +1118,7 @@
                         </div>
                         
                         <div className="p-6 border-t border-gray-100 text-xs text-gray-400 text-center">
-                            Versão 1.0.3 (HTML) • Atualizado 2026
+                            Versão 1.0.4 (HTML) • Atualizado 2026
                         </div>
                     </aside>
 
@@ -1018,6 +1143,7 @@
                             {currentScreen === 'adesao' && <FlowTemplate title="Fluxo Plano Adesão" icon="ph-users" flowData={FLOW_ADESAO} />}
                             {currentScreen === 'individual' && <FlowTemplate title="Fluxo Plano Individual" icon="ph-user" flowData={FLOW_INDIVIDUAL} />}
                             {currentScreen === 'checklist' && <ChecklistScreen />}
+                            {currentScreen === 'idades' && <AgesScreen />}
                             {currentScreen === 'kanban' && <KanbanScreen cards={cards} setCards={setCards} />}
                             {currentScreen === 'dashboard' && <DashboardScreen cards={cards} setCards={setCards} />}
                             {currentScreen === 'alertas' && <AlertsScreen />}
