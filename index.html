@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Interativo de Implantação</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons (Web Font) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel (Para rodar JSX direto no navegador) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Animações Customizadas */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        /* Ajuste fino para os ícones */
+        i.ph {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-900 font-sans overflow-hidden">
+    
+    <!-- Contêiner principal do React -->
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const MENU_ITEMS = [
+            { id: 'menu', icon: 'ph-squares-four', label: 'Menu Principal' },
+            { id: 'pme', icon: 'ph-buildings', label: 'Fluxo PME' },
+            { id: 'adesao', icon: 'ph-users', label: 'Fluxo Adesão' },
+            { id: 'individual', icon: 'ph-user', label: 'Fluxo Individual' },
+            { id: 'checklist', icon: 'ph-check-square', label: 'Checklist Documentos' },
+            { id: 'kanban', icon: 'ph-kanban', label: 'Controle de Status' },
+            { id: 'dashboard', icon: 'ph-chart-bar', label: 'Dashboard' },
+            { id: 'alertas', icon: 'ph-warning', label: 'Alertas Importantes' },
+            { id: 'mensagens', icon: 'ph-chats', label: 'Mensagens Prontas' },
+            { id: 'faq', icon: 'ph-question', label: 'Perguntas Frequentes' },
+            { id: 'final', icon: 'ph-shield-check', label: 'Indicadores Finais' }
+        ];
+
+        const FLOW_PME = [
+            { title: 'Recebimento da Proposta', time: 'Imediato', desc: 'Entrada via sistema ou e-mail corporativo.' },
+            { title: 'Check List de Documentos', time: 'Até 2 horas úteis', desc: 'Conferência rigorosa de toda a documentação da empresa, titular e dependentes.' },
+            { title: 'Cadastro da Proposta', time: 'Até 12 horas úteis', desc: 'Inserção de dados no sistema da operadora.' },
+            { title: 'Assinatura do Cliente', time: 'Até 1 dia útil', desc: 'Coleta da assinatura digital ou física do contrato.' },
+            { title: 'Análise da Operadora', time: 'Até 20 dias úteis', desc: 'Aguardando validação e aprovação da operadora de saúde.' },
+            { title: 'Pagamento do boleto', time: 'Varia (30/60 dias)', desc: 'Vencimento do primeiro boleto conforme regra da operadora ou seguradora.', highlight: true },
+            { title: 'Implantação', time: 'Finalização', desc: 'Processo concluído e plano ativo para uso.' }
+        ];
+
+        const FLOW_ADESAO = [
+            { title: 'Recebimento da Proposta', time: 'Imediato', desc: 'Entrada via administradora de benefícios.' },
+            { title: 'Check List de Documentos', time: 'Até 2 horas úteis', desc: 'Conferência de documentos e comprovante de vínculo com a entidade.' },
+            { title: 'Cadastro da Proposta', time: 'Até 12 horas úteis', desc: 'Inserção de dados no portal da administradora.' },
+            { title: 'Assinatura do Cliente', time: 'Até 1 dia útil', desc: 'Assinatura digital do cliente na proposta.' },
+            { title: 'Análise Documental e Operadora', time: 'Variável', desc: 'Análise da administradora e posterior envio à operadora.' },
+            { title: 'Implantação', time: 'Data de Vigência', desc: 'Implantação ocorre estritamente na data de vigência definida na assinatura do contrato.', highlight: true }
+        ];
+
+        const FLOW_INDIVIDUAL = [
+            { title: 'Recebimento da Proposta', time: 'Imediato', desc: 'Entrada via corretor ou canal direto.' },
+            { title: 'Check List de Documentos', time: 'Até 2 horas úteis', desc: 'Conferência de documentos pessoais e selfie.' },
+            { title: 'Cadastro da Proposta', time: 'Até 12 horas úteis', desc: 'Inserção de dados sistêmica.' },
+            { title: 'Assinatura do Cliente', time: 'Até 1 dia útil', desc: 'Assinatura da proposta física ou digital.' },
+            { title: 'Análise Documental', time: 'Até 5 dias úteis', desc: 'Análise de risco e aceitação por parte da operadora.', highlight: true },
+            { title: 'Pagamento do Boleto', time: 'Imediato', desc: 'O vencimento do boleto ocorre muito próximo ao início do processo.' },
+            { title: 'Implantação', time: 'Após Quitação', desc: 'Plano ativado somente após a compensação do pagamento do primeiro boleto.', highlight: true }
+        ];
+
+        const FAQ_ITEMS = [
+            { q: 'Quando solicitar Carta de Permanência?', a: 'Sempre que o cliente possuir um plano de saúde anterior ativo ou cancelado recentemente (para aproveitamento ou redução de carência). Isso garante o aproveitamento de carências.' },
+            { q: 'Qual o prazo máximo para cadastro?', a: 'O prazo padrão para cadastro de propostas no sistema é de até 12 horas úteis após o recebimento e validação inicial (checklist) dos documentos.' },
+            { q: 'Quando ocorre a implantação do PME?', a: 'Ocorre após a análise da operadora (que leva até 20 dias úteis) e o aceite final do contrato, observando as regras de pagamento do primeiro boleto.' },
+            { q: 'Quando ocorre a implantação do plano por Adesão?', a: 'Ocorrerá rigorosamente na data de vigência escolhida e estipulada em contrato, dependendo da administradora de benefícios.' },
+            { q: 'Qual o prazo de implantação do Individual?', a: 'Para planos individuais, a análise leva até 5 dias úteis e a implantação final está condicionada à quitação do boleto bancário de entrada.' }
+        ];
+
+        const KANBAN_COLS = ['Recebida', 'Check List', 'Cadastro', 'Assinatura', 'Em Análise', 'Pendência', 'Aguardando Implantação', 'Implantada'];
+
+        const copyToClipboard = (text, setCopiedId, id) => {
+            // Usa execCommand como fallback em iframes ou caso API moderna falhe
+            const fallbackCopy = (textToCopy) => {
+                const textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    setCopiedId(id);
+                    setTimeout(() => setCopiedId(null), 2000);
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                }
+                textArea.remove();
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        setCopiedId(id);
+                        setTimeout(() => setCopiedId(null), 2000);
+                    })
+                    .catch(() => fallbackCopy(text));
+            } else {
+                fallbackCopy(text);
+            }
+        };
+
+        const FlowStep = ({ step, index, total }) => (
+            <div className="relative flex items-start gap-6 mb-8 group">
+                <div className="flex flex-col items-center">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shadow-md z-10 transition-colors
+                        ${step.highlight ? 'bg-black text-white shadow-gray-400' : 'bg-purple-600 text-white shadow-purple-200'}`}>
+                        {index + 1}
+                    </div>
+                    {index < total - 1 && (
+                        <div className="w-1 h-full bg-gray-200 absolute top-12 bottom-[-2rem] group-hover:bg-purple-300 transition-colors"></div>
+                    )}
+                </div>
+                <div className={`flex-1 bg-white p-6 rounded-2xl shadow-sm border ${step.highlight ? 'border-gray-800' : 'border-gray-100'} hover:shadow-md transition-shadow`}>
+                    <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-xl font-bold text-gray-800">{step.title}</h3>
+                        <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold 
+                            ${step.highlight ? 'bg-gray-200 text-black' : 'bg-purple-100 text-purple-800'}`}>
+                            <i className="ph ph-clock text-[14px]"></i>
+                            {step.time}
+                        </span>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed">{step.desc}</p>
+                </div>
+            </div>
+        );
+
+        const CoverScreen = ({ onStart }) => (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-black to-purple-900 p-6 text-center w-full h-full absolute inset-0 z-50">
+                <div className="bg-white/10 backdrop-blur-md p-10 rounded-3xl shadow-2xl max-w-3xl border border-white/20 animate-fade-in-up">
+                    <div className="bg-white text-purple-800 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg">
+                        <i className="ph ph-activity text-[40px]"></i>
+                    </div>
+                    <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight">
+                        Guia Interativo de Implantação
+                    </h1>
+                    <h2 className="text-2xl md:text-3xl text-purple-300 font-medium mb-8">
+                        Operacional | Planos de Saúde
+                    </h2>
+                    <p className="text-lg text-purple-100 mb-12 max-w-2xl mx-auto leading-relaxed">
+                        Este guia reúne todos os processos, fluxos, prazos e documentos necessários para a implantação de propostas, permitindo uma consulta rápida, segura e padronizada.
+                    </p>
+                    <button 
+                        onClick={onStart}
+                        className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-black bg-white rounded-full overflow-hidden transition-all hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_rgba(255,255,255,0.5)]"
+                    >
+                        <span className="mr-2">Iniciar Jornada</span>
+                        <i className="ph ph-arrow-right text-[20px] group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+        );
+
+        const MenuScreen = ({ setScreen }) => (
+            <div className="animate-fade-in">
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">Visão Geral</h2>
+                <p className="text-gray-500 mb-8">Selecione um dos módulos abaixo para acessar as diretrizes operacionais.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {MENU_ITEMS.slice(1).map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setScreen(item.id)}
+                            className="flex flex-col items-center justify-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-purple-300 transition-all group"
+                        >
+                            <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                <i className={`ph ${item.icon} text-[32px]`}></i>
+                            </div>
+                            <span className="text-lg font-semibold text-gray-800">{item.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const FlowTemplate = ({ title, icon, flowData }) => (
+            <div className="max-w-4xl mx-auto animate-fade-in">
+                <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200">
+                    <div className="p-3 bg-purple-100 text-purple-700 rounded-xl flex items-center justify-center">
+                        <i className={`ph ${icon} text-[28px]`}></i>
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
+                        <p className="text-gray-500 mt-1">Acompanhe o fluxo etapa por etapa de implantação.</p>
+                    </div>
+                </div>
+                <div className="pl-4 py-4">
+                    {flowData.map((step, idx) => (
+                        <FlowStep key={idx} step={step} index={idx} total={flowData.length} />
+                    ))}
+                </div>
+            </div>
+        );
+
+        const ChecklistScreen = () => {
+            const [activeTab, setActiveTab] = useState('PME');
+            
+            const WarningCard = () => (
+                <div className="mt-8 bg-rose-50 border-l-4 border-red-500 p-6 rounded-r-xl flex items-start gap-4">
+                    <i className="ph ph-warning-circle text-[24px] text-red-500 mt-1 flex-shrink-0"></i>
+                    <div>
+                        <h4 className="text-red-800 font-bold text-lg mb-1">ATENÇÃO</h4>
+                        <p className="text-red-700">Sempre solicitar a <strong>Carta de Permanência</strong> quando o cliente possuir plano anterior. Item obrigatório para aproveitamento de carências.</p>
+                    </div>
+                </div>
+            );
+
+            const CheckItem = ({ label }) => (
+                <label className="flex items-center p-4 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors group">
+                    <div className="w-6 h-6 border-2 border-gray-300 rounded flex items-center justify-center mr-4 group-hover:border-purple-500 transition-colors">
+                        <i className="ph ph-check text-[16px] text-transparent group-hover:text-purple-500"></i>
+                    </div>
+                    <span className="text-gray-700 font-medium">{label}</span>
+                </label>
+            );
+
+            return (
+                <div className="max-w-5xl mx-auto animate-fade-in">
+                    <h2 className="text-3xl font-bold text-gray-800 mb-8">Checklist de Documentos</h2>
+                    
+                    <div className="flex space-x-2 mb-8 bg-gray-100 p-1.5 rounded-2xl w-fit">
+                        {['PME', 'Adesão', 'Individual'].map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-8 py-3 rounded-xl font-semibold transition-all ${activeTab === tab ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                        {activeTab === 'PME' && (
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <div>
+                                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                                        <i className="ph ph-buildings text-[20px]"></i> Empresa / Titular
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <CheckItem label="Contrato Social" />
+                                        <CheckItem label="Cartão CNPJ" />
+                                        <CheckItem label="RG e CPF ou CNH" />
+                                        <CheckItem label="E-mail" />
+                                        <CheckItem label="Telefone" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                                        <i className="ph ph-briefcase text-[20px]"></i> Funcionário
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <CheckItem label="RG e CPF ou CNH" />
+                                        <CheckItem label="Comprovante de vínculo" />
+                                        <CheckItem label="E-mail" />
+                                        <CheckItem label="Telefone" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                                        <i className="ph ph-users text-[20px]"></i> Dependentes
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <CheckItem label="Certidão de Nascimento" />
+                                        <CheckItem label="RG e CPF ou CNH" />
+                                        <CheckItem label="Certidão de Casamento" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'Adesão' && (
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                                        <i className="ph ph-user text-[20px]"></i> Titular
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <CheckItem label="RG e CPF ou CNH" />
+                                        <CheckItem label="Selfie segurando documento" />
+                                        <CheckItem label="Comprovante de residência" />
+                                        <CheckItem label="Comprovante vínculo entidade" />
+                                        <CheckItem label="E-mail e Telefone" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                                        <i className="ph ph-users text-[20px]"></i> Dependentes
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <CheckItem label="RG e CPF ou CNH" />
+                                        <CheckItem label="Documento vínculo" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'Individual' && (
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                                        <i className="ph ph-user text-[20px]"></i> Titular
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <CheckItem label="RG e CPF ou CNH" />
+                                        <CheckItem label="Selfie segurando documento" />
+                                        <CheckItem label="Comprovante de residência" />
+                                        <CheckItem label="E-mail e Telefone" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                                        <i className="ph ph-users text-[20px]"></i> Dependentes
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <CheckItem label="RG e CPF ou CNH" />
+                                        <CheckItem label="Documento de vínculo" />
+                                        <CheckItem label="Carta de Permanência" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <WarningCard />
+                    </div>
+                </div>
+            );
+        };
+
+        const KanbanScreen = ({ cards, setCards }) => {
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [draggedCardId, setDraggedCardId] = useState(null);
+            const [editingCard, setEditingCard] = useState(null);
+
+            const handleDragStart = (e, id) => {
+                setDraggedCardId(id);
+                e.dataTransfer.effectAllowed = "move";
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+            };
+
+            const handleDrop = (e, newStatus) => {
+                e.preventDefault();
+                if (draggedCardId !== null) {
+                    setCards(prevCards => 
+                        prevCards.map(card => 
+                            card.id === draggedCardId ? { ...card, status: newStatus } : card
+                        )
+                    );
+                    setDraggedCardId(null);
+                }
+            };
+
+            const handleDeleteCard = (id) => {
+                setCards(prevCards => prevCards.filter(card => card.id !== id));
+            };
+
+            const handleEditClick = (card) => {
+                setEditingCard(card);
+                setIsModalOpen(true);
+            };
+
+            const handleSaveCard = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const cardData = {
+                    name: formData.get('name'),
+                    op: formData.get('op'),
+                    type: formData.get('type'),
+                    resp: formData.get('resp'),
+                };
+
+                if (editingCard) {
+                    setCards(prevCards => prevCards.map(card => 
+                        card.id === editingCard.id ? { ...card, ...cardData } : card
+                    ));
+                } else {
+                    const newCard = {
+                        id: Date.now(),
+                        ...cardData,
+                        date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                        sla: 'green',
+                        status: 'Recebida'
+                    };
+                    setCards([...cards, newCard]);
+                }
+                
+                setIsModalOpen(false);
+                setEditingCard(null);
+            };
+
+            const getSlaColor = (color) => {
+                switch(color) {
+                    case 'green': return 'bg-emerald-500';
+                    case 'yellow': return 'bg-amber-400';
+                    case 'red': return 'bg-rose-500';
+                    default: return 'bg-gray-400';
+                }
+            };
+
+            return (
+                <div className="h-[80vh] flex flex-col animate-fade-in relative">
+                    <div className="mb-6 flex justify-between items-end">
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-800">Controle de Status (Kanban)</h2>
+                            <p className="text-gray-500 mt-1">Acompanhamento visual e gestão das propostas.</p>
+                        </div>
+                        <button 
+                            onClick={() => { setEditingCard(null); setIsModalOpen(true); }}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 shadow-sm transition-colors"
+                        >
+                            <i className="ph ph-plus text-[20px]"></i>
+                            Nova Proposta
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-x-auto pb-4 custom-scrollbar">
+                        <div className="flex gap-4 min-w-max h-full">
+                            {KANBAN_COLS.map(col => (
+                                <div 
+                                    key={col} 
+                                    className="w-80 bg-gray-50/80 rounded-2xl p-4 border border-gray-200 flex flex-col"
+                                    onDragOver={handleDragOver}
+                                    onDrop={(e) => handleDrop(e, col)}
+                                >
+                                    <h3 className="font-bold text-gray-700 mb-4 flex items-center justify-between">
+                                        {col}
+                                        <span className="bg-gray-200 text-gray-600 text-xs py-1 px-2 rounded-full">
+                                            {cards.filter(c => c.status === col).length}
+                                        </span>
+                                    </h3>
+                                    <div className="flex-1 overflow-y-auto space-y-3 min-h-[100px]">
+                                        {cards.filter(c => c.status === col).map(card => (
+                                            <div 
+                                                key={card.id} 
+                                                draggable
+                                                onDragStart={(e) => handleDragStart(e, card.id)}
+                                                className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md cursor-grab active:cursor-grabbing transition-shadow relative overflow-hidden group"
+                                            >
+                                                <div className={`absolute top-0 left-0 w-1 h-full ${getSlaColor(card.sla)}`}></div>
+                                                
+                                                <div className="flex justify-between items-start mb-2 relative">
+                                                    <span className="font-bold text-gray-800 text-sm group-hover:text-purple-600 transition-colors pr-4 w-[75%] truncate">
+                                                        {card.name}
+                                                    </span>
+                                                    
+                                                    <div className="relative h-6 flex items-start justify-end flex-1">
+                                                        <span className="absolute text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-semibold group-hover:opacity-0 transition-opacity">
+                                                            {card.type}
+                                                        </span>
+                                                        
+                                                        <div className="absolute flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-white shadow-sm rounded-lg p-0.5 border border-gray-100">
+                                                            <button 
+                                                                onMouseDown={(e) => e.stopPropagation()} 
+                                                                onClick={(e) => { e.stopPropagation(); handleEditClick(card); }}
+                                                                className="p-1 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors flex items-center justify-center"
+                                                                title="Editar"
+                                                            >
+                                                                <i className="ph ph-pencil-simple text-[16px]"></i>
+                                                            </button>
+                                                            <button 
+                                                                onMouseDown={(e) => e.stopPropagation()} 
+                                                                onClick={(e) => { e.stopPropagation(); handleDeleteCard(card.id); }}
+                                                                className="p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors flex items-center justify-center"
+                                                                title="Excluir"
+                                                            >
+                                                                <i className="ph ph-trash text-[16px]"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-xs text-gray-500 mb-3">{card.op}</div>
+                                                <div className="flex justify-between items-center text-xs text-gray-400 mt-2 pt-2 border-t border-gray-50">
+                                                    <span className="flex items-center gap-1"><i className="ph ph-user text-[14px]"></i> {card.resp}</span>
+                                                    <span className="flex items-center gap-1"><i className="ph ph-clock text-[14px]"></i> {card.date}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {isModalOpen && (
+                        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-fade-in-up">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-xl font-bold text-gray-800">
+                                        {editingCard ? 'Editar Proposta' : 'Cadastrar Nova Proposta'}
+                                    </h3>
+                                    <button 
+                                        onClick={() => { setIsModalOpen(false); setEditingCard(null); }} 
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        <i className="ph ph-x text-[24px]"></i>
+                                    </button>
+                                </div>
+                                
+                                <form key={editingCard ? editingCard.id : 'new'} onSubmit={handleSaveCard} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Cliente / Empresa</label>
+                                        <input required name="name" type="text" defaultValue={editingCard?.name} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Ex: Acme Corp" />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Operadora</label>
+                                        <input required name="op" type="text" defaultValue={editingCard?.op} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Ex: SulAmérica, Bradesco..." />
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Plano</label>
+                                            <select required name="type" defaultValue={editingCard?.type || "PME"} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                                                <option value="PME">PME</option>
+                                                <option value="Adesão">Adesão</option>
+                                                <option value="Individual">Individual</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Responsável</label>
+                                            <input required name="resp" type="text" defaultValue={editingCard?.resp} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Nome" />
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8 flex gap-3 pt-4 border-t border-gray-100">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => { setIsModalOpen(false); setEditingCard(null); }} 
+                                            className="flex-1 px-4 py-2.5 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button type="submit" className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium transition-colors shadow-sm">
+                                            {editingCard ? 'Salvar Alterações' : 'Salvar Proposta'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const DashboardScreen = ({ cards, setCards }) => {
+            const totalPropostas = cards.length;
+            const implantadas = cards.filter(c => c.status === 'Implantada').length;
+            const pendencias = cards.filter(c => c.status === 'Pendência').length;
+            const noPrazo = cards.filter(c => c.sla === 'green').length;
+            const slaPercent = totalPropostas === 0 ? 0 : Math.round((noPrazo / totalPropostas) * 100);
+
+            const getStatusPercent = (statusName) => {
+                if (totalPropostas === 0) return 0;
+                const count = cards.filter(c => c.status === statusName).length;
+                return Math.round((count / totalPropostas) * 100);
+            };
+
+            return (
+                <div className="animate-fade-in">
+                    <div className="flex justify-between items-center mb-8">
+                        <h2 className="text-3xl font-bold text-gray-800">Dashboard Executivo</h2>
+                        {totalPropostas > 0 && (
+                            <button 
+                                onClick={() => {
+                                    if(window.confirm('Tem certeza que deseja apagar todas as propostas?')) {
+                                        setCards([]);
+                                    }
+                                }}
+                                className="flex items-center gap-2 text-sm text-rose-600 bg-rose-50 hover:bg-rose-100 px-4 py-2.5 rounded-xl font-semibold transition-colors border border-rose-100 shadow-sm"
+                            >
+                                <i className="ph ph-trash text-[16px]"></i>
+                                Zerar Contagem
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        {[
+                            { title: 'Total de Propostas', value: totalPropostas, sub: 'Geral', icon: 'ph-file-text', color: 'text-purple-600', bg: 'bg-purple-100' },
+                            { title: 'Implantadas', value: implantadas, sub: 'Concluídas', icon: 'ph-check-circle', color: 'text-emerald-600', bg: 'bg-emerald-100' },
+                            { title: 'Pendências Doc.', value: pendencias, sub: 'Ação necessária', icon: 'ph-warning-circle', color: 'text-rose-600', bg: 'bg-rose-100' },
+                            { title: 'Tempo Médio', value: totalPropostas > 0 ? '4.2' : '0', sub: 'Dias úteis', icon: 'ph-activity', color: 'text-black', bg: 'bg-gray-200' },
+                        ].map((kpi, i) => (
+                            <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-5">
+                                <div className={`w-14 h-14 ${kpi.bg} ${kpi.color} rounded-xl flex items-center justify-center shrink-0`}>
+                                    <i className={`ph ${kpi.icon} text-[28px]`}></i>
+                                </div>
+                                <div>
+                                    <p className="text-gray-500 text-sm font-medium">{kpi.title}</p>
+                                    <h4 className="text-3xl font-extrabold text-gray-800">{kpi.value}</h4>
+                                    <p className="text-xs text-gray-400 mt-1">{kpi.sub}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <h3 className="font-bold text-gray-800 mb-6 text-lg">Propostas por Status</h3>
+                            <div className="space-y-4">
+                                {[
+                                    { label: 'Em Análise Operadora', val: getStatusPercent('Em Análise'), color: 'bg-purple-500' },
+                                    { label: 'Aguardando Assinatura', val: getStatusPercent('Assinatura'), color: 'bg-amber-400' },
+                                    { label: 'Em Cadastro', val: getStatusPercent('Cadastro'), color: 'bg-black' },
+                                    { label: 'Checklist Inicial', val: getStatusPercent('Check List'), color: 'bg-gray-400' },
+                                ].map(item => (
+                                    <div key={item.label}>
+                                        <div className="flex justify-between text-sm mb-1">
+                                            <span className="text-gray-600">{item.label}</span>
+                                            <span className="font-bold text-gray-800">{item.val}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 rounded-full h-2.5">
+                                            <div className={`${item.color} h-2.5 rounded-full transition-all duration-500`} style={{ width: `${item.val}%` }}></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center">
+                            <div 
+                                className="relative w-48 h-48 rounded-full flex items-center justify-center mb-4 transition-all duration-500 shadow-[inset_0_0_20px_rgba(0,0,0,0.05)]"
+                                style={{ background: `conic-gradient(#10b981 ${slaPercent}%, #ecfdf5 0)` }}
+                            >
+                                <div className="w-40 h-40 bg-white rounded-full flex items-center justify-center flex-col shadow-sm">
+                                    <span className="text-4xl font-extrabold text-gray-800">{slaPercent}%</span>
+                                    <p className="text-sm text-gray-500 mt-1">SLA no Prazo</p>
+                                </div>
+                            </div>
+                            <p className="text-gray-600 max-w-sm mt-4">Nossa meta é manter o SLA acima de 90%. Foque na resolução de pendências ativas.</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AlertsScreen = () => {
+            const [copiedId, setCopiedId] = useState(null);
+
+            const alerts = [
+                { id: 1, title: 'Checklist Incompleto', desc: 'Nunca cadastrar proposta no sistema da operadora sem o checklist 100% validado.', icon: 'ph-check-square' },
+                { id: 2, title: 'Contatos Corretos', desc: 'Sempre conferir minunciosamente E-mail e Telefone do titular para evitar devoluções.', icon: 'ph-user' },
+                { id: 3, title: 'Carta de Permanência', desc: 'Solicitar Carta de Permanência obrigatória sempre que o cliente declarar plano anterior.', icon: 'ph-file-text' },
+                { id: 4, title: 'Vínculo de Dependentes', desc: 'Conferir com rigor o documento que comprova o vínculo de todos os dependentes incluídos.', icon: 'ph-users' },
+                { id: 5, title: 'Validação de Assinaturas', desc: 'Validar a assinatura (física ou digital) antes de realizar o upload final na plataforma.', icon: 'ph-file-text' },
+                { id: 6, title: 'Pagamento de Boleto', desc: 'Conferir o pagamento do primeiro boleto antes de confirmar a implantação (PME e Individual).', icon: 'ph-warning' },
+            ];
+
+            return (
+                <div className="max-w-5xl mx-auto animate-fade-in">
+                    <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200">
+                        <div className="p-3 bg-rose-100 text-rose-600 rounded-xl">
+                            <i className="ph ph-warning text-[28px]"></i>
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-800">Alertas Importantes</h2>
+                            <p className="text-gray-500 mt-1">Atenção redobrada a estes pontos para evitar erros e atrasos na implantação.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {alerts.map((al) => (
+                            <div key={al.id} className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm flex flex-col hover:shadow-md transition-shadow group relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex gap-4">
+                                        <div className="bg-rose-50 text-rose-600 w-12 h-12 rounded-full flex items-center justify-center shrink-0 group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                                            <i className={`ph ${al.icon} text-[24px]`}></i>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-800 text-lg">{al.title}</h3>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => copyToClipboard(`[ALERTA OPERACIONAL]: ${al.title} - ${al.desc}`, setCopiedId, al.id)}
+                                        className={`p-2 rounded-lg transition-all flex items-center justify-center
+                                            ${copiedId === al.id ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-50 text-gray-400 hover:text-purple-600 hover:bg-purple-50'}`}
+                                        title={copiedId === al.id ? 'Copiado!' : 'Copiar texto para enviar'}
+                                    >
+                                        <i className={`ph ${copiedId === al.id ? 'ph-check-circle' : 'ph-copy'} text-[20px]`}></i>
+                                    </button>
+                                </div>
+                                <div className="pl-16">
+                                    <p className="text-gray-600">{al.desc}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const MessagesScreen = () => {
+            const [activeTab, setActiveTab] = useState('Status');
+            const [copiedId, setCopiedId] = useState(null);
+
+            const [messagesData, setMessagesData] = useState({
+                status1: "Olá! A proposta do cliente [Nome do Cliente] acaba de entrar em análise na operadora. O prazo estimado é de até [Prazo] dias úteis. Qualquer novidade, aviso você!",
+                status2: "Boa tarde! Informo que a proposta [Nome do Cliente] foi aprovada e já está implantada. O plano está ativo e pronto para uso.",
+                status3: "Olá! O cadastro da proposta de [Nome do Cliente] foi concluído no sistema. Agora, precisamos que o cliente realize a assinatura [física/digital] do contrato no link enviado. Fico no aguardo para darmos andamento!",
+                status4: "Boa tarde! A análise da proposta de [Nome do Cliente] foi finalizada. Para que a implantação seja efetivada, precisamos da confirmação de pagamento do boleto de adesão/primeira parcela. Pode me enviar o comprovante assim que o cliente pagar?",
+                status5: "Olá! Recebemos a documentação de [Nome do Cliente]. O checklist inicial está em andamento (prazo de até 2 horas úteis). Retorno em breve!",
+                status6: "Boa tarde! O boleto de adesão/1ª parcela da proposta de [Nome do Cliente] já foi gerado e enviado para o e-mail cadastrado. Vencimento programado para: [Data].",
+                
+                alerta1: "Atenção: A proposta de [Nome do Cliente] apresentou uma pendência documental. Falta enviar: [Descrever a pendência]. Por favor, me envie o quanto antes para resolvermos.",
+                alerta2: "Olá! Notamos que o cliente [Nome do Cliente] possui plano anterior. É imprescindível o envio da Carta de Permanência atualizada para garantirmos o aproveitamento das carências.",
+                alerta3: "Atenção: O documento de vínculo [do titular/dependente] na proposta de [Nome do Cliente] é inválido ou está desatualizado. Precisamos de um documento aceito (ex: FGTS, eSocial ou contracheque recente).",
+                alerta4: "Olá! Identificamos uma divergência ou ausência na assinatura da proposta de [Nome do Cliente]. Precisamos providenciar uma nova assinatura com urgência para evitar a devolução pela operadora.",
+                alerta5: "Atenção: Está faltando a selfie do titular segurando o documento de identidade (RG/CNH) para a proposta de [Nome do Cliente]. Este item é obrigatório para a análise de risco da operadora.",
+                alerta6: "Atenção: A operadora apontou divergência na Declaração de Saúde da proposta de [Nome do Cliente]. Será necessário realizar a Entrevista Médica Qualificada. Por favor, avise o cliente que haverá contato telefônico.",
+                alerta7: "Olá! O CNPJ da empresa [Nome da Empresa] consta como Inapto/Baixado na Receita Federal. Precisamos da regularização junto ao contador para conseguirmos seguir com a implantação PME.",
+                alerta8: "Atenção: Identificamos que o comprovante de residência enviado para [Nome do Cliente] não é válido (muito antigo ou em nome de terceiros). Precisamos de uma conta de consumo (água, luz, gás) dos últimos 90 dias.",
+                alerta9: "Olá! O beneficiário [Nome do Dependente/Titular] está fora da regra de aceitação por idade para a operadora escolhida. Precisamos verificar um produto alternativo ou solicitar exceção comercial.",
+                alerta10: "Olá! Durante o checklist inicial da documentação de [Nome do Cliente], identificamos que falta enviar ou está ilegível: [Listar os documentos pendentes]. Fico no aguardo do reenvio para conseguirmos seguir com o cadastro sistêmico.",
+                alerta11: "Atenção! A proposta de [Nome do Cliente] entrou em exigência durante a fase de análise da operadora. O motivo apontado foi: [Descrever a exigência da operadora]. Precisamos regularizar essa pendência o quanto antes para retomarmos a contagem do prazo de implantação."
+            });
+
+            const handleTextChange = (id, newText) => {
+                setMessagesData(prev => ({ ...prev, [id]: newText }));
+            };
+
+            const MessageCard = ({ id, title, type }) => (
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                    <div className={`absolute top-0 left-0 w-1 h-full ${type === 'status' ? 'bg-purple-500' : 'bg-rose-500'}`}></div>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
+                            <i className={`ph ${type === 'status' ? 'ph-info' : 'ph-warning-circle'} text-[22px] ${type === 'status' ? 'text-purple-600' : 'text-rose-600'}`}></i>
+                            {title}
+                        </h3>
+                        <button 
+                            onClick={() => copyToClipboard(messagesData[id], setCopiedId, id)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                                copiedId === id 
+                                ? 'bg-emerald-100 text-emerald-700' 
+                                : 'bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-700'
+                            }`}
+                        >
+                            <i className={`ph ${copiedId === id ? 'ph-check-circle' : 'ph-copy'} text-[18px]`}></i>
+                            {copiedId === id ? 'Copiado!' : 'Copiar'}
+                        </button>
+                    </div>
+                    <textarea 
+                        value={messagesData[id]}
+                        onChange={(e) => handleTextChange(id, e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-300 resize-y min-h-[100px] text-sm"
+                    ></textarea>
+                    <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                        <i className="ph ph-pencil-simple"></i> Você pode editar o texto acima antes de copiar.
+                    </p>
+                </div>
+            );
+
+            return (
+                <div className="max-w-5xl mx-auto animate-fade-in">
+                    <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200">
+                        <div className="p-3 bg-purple-100 text-purple-700 rounded-xl flex items-center justify-center">
+                            <i className="ph ph-chats text-[28px]"></i>
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-800">Mensagens Prontas</h2>
+                            <p className="text-gray-500 mt-1">Templates editáveis para comunicação ágil com o assessor.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex space-x-2 mb-8 bg-gray-100 p-1.5 rounded-2xl w-fit">
+                        {['Status', 'Alertas'].map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-8 py-3 rounded-xl font-semibold transition-all ${activeTab === tab ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {activeTab === 'Status' ? (
+                            <>
+                                <MessageCard id="status5" title="Recepção e Checklist" type="status" />
+                                <MessageCard id="status1" title="Início de Análise" type="status" />
+                                <MessageCard id="status3" title="Aguardando Assinatura" type="status" />
+                                <MessageCard id="status6" title="Boleto Gerado/Enviado" type="status" />
+                                <MessageCard id="status4" title="Aguardando Pagamento" type="status" />
+                                <MessageCard id="status2" title="Proposta Implantada" type="status" />
+                            </>
+                        ) : (
+                            <>
+                                <MessageCard id="alerta1" title="Pendência Genérica" type="alerta" />
+                                <MessageCard id="alerta10" title="Pendência de Documentos (Checklist)" type="alerta" />
+                                <MessageCard id="alerta11" title="Pendência na Análise da Operadora" type="alerta" />
+                                <MessageCard id="alerta2" title="Falta Carta de Permanência" type="alerta" />
+                                <MessageCard id="alerta3" title="Vínculo Inválido" type="alerta" />
+                                <MessageCard id="alerta8" title="Comp. Residência Inválido" type="alerta" />
+                                <MessageCard id="alerta4" title="Problema na Assinatura" type="alerta" />
+                                <MessageCard id="alerta5" title="Falta de Selfie (Biometria)" type="alerta" />
+                                <MessageCard id="alerta6" title="Divergência (Entrevista Médica)" type="alerta" />
+                                <MessageCard id="alerta7" title="CNPJ Irregular (PME)" type="alerta" />
+                                <MessageCard id="alerta9" title="Idade Fora da Regra" type="alerta" />
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const FAQScreen = () => {
+            const [openIdx, setOpenIdx] = useState(0);
+
+            return (
+                <div className="max-w-3xl mx-auto animate-fade-in">
+                    <div className="text-center mb-10">
+                        <h2 className="text-3xl font-bold text-gray-800 mb-4">Perguntas Frequentes</h2>
+                        <p className="text-gray-500">Dúvidas operacionais comuns respondidas de forma rápida.</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        {FAQ_ITEMS.map((item, idx) => (
+                            <div key={idx} className={`bg-white border rounded-2xl overflow-hidden transition-all duration-300 ${openIdx === idx ? 'border-purple-300 shadow-md' : 'border-gray-200 shadow-sm'}`}>
+                                <button 
+                                    onClick={() => setOpenIdx(openIdx === idx ? -1 : idx)}
+                                    className="w-full text-left p-6 flex justify-between items-center focus:outline-none"
+                                >
+                                    <h3 className={`font-bold pr-8 ${openIdx === idx ? 'text-purple-700' : 'text-gray-700'}`}>
+                                        {item.q}
+                                    </h3>
+                                    <i className={`ph ph-caret-down text-[20px] shrink-0 transition-transform duration-300 ${openIdx === idx ? 'rotate-180 text-purple-600' : 'text-gray-400'}`}></i>
+                                </button>
+                                <div className={`px-6 pb-6 text-gray-600 overflow-hidden transition-all duration-300 ${openIdx === idx ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 pb-0'}`}>
+                                    <div className="pt-2 border-t border-gray-100 mt-2">
+                                        {item.a}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const FinalScreen = () => (
+            <div className="min-h-[80vh] flex flex-col justify-center items-center text-center animate-fade-in max-w-4xl mx-auto">
+                <div className="bg-gradient-to-br from-purple-50 to-gray-100 w-full p-12 rounded-3xl border border-purple-100 shadow-lg relative overflow-hidden">
+                    
+                    <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-[-50px] left-[-50px] w-64 h-64 bg-black/5 rounded-full blur-3xl"></div>
+
+                    <i className="ph ph-shield-check text-[96px] text-black mx-auto mb-8 drop-shadow-md"></i>
+                    <h2 className="text-4xl font-extrabold text-purple-900 mb-4">
+                        Excelência Operacional
+                    </h2>
+                    <p className="text-xl text-purple-800/80 mb-12 max-w-2xl mx-auto">
+                        Nosso objetivo é garantir uma implantação ágil, segura e padronizada, proporcionando a melhor experiência para nossos clientes.
+                    </p>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+                        {[
+                            { label: 'Tempo Médio', val: '4.2 Dias' },
+                            { label: 'SLA Atendido', val: '94%' },
+                            { label: 'Pendências', val: '< 5%' },
+                            { label: 'Implantadas', val: '800+' },
+                        ].map((k, i) => (
+                            <div key={i} className="bg-white/80 backdrop-blur-sm py-6 px-4 rounded-2xl border border-white shadow-sm">
+                                <div className="text-2xl font-bold text-purple-700">{k.val}</div>
+                                <div className="text-sm font-medium text-gray-500 mt-1">{k.label}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <p className="text-sm text-gray-400 font-medium tracking-wide uppercase">
+                        Foco no processo • Foco no cliente
+                    </p>
+                </div>
+            </div>
+        );
+
+        const App = () => {
+            const [currentScreen, setCurrentScreen] = useState('cover');
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+            
+            const [cards, setCards] = useState(() => {
+                const savedCards = localStorage.getItem('kanbanCards');
+                if (savedCards) {
+                    try { return JSON.parse(savedCards); } 
+                    catch (e) { return []; }
+                }
+                return []; 
+            }); 
+
+            useEffect(() => {
+                localStorage.setItem('kanbanCards', JSON.stringify(cards));
+            }, [cards]);
+
+            const handleNav = (screenId) => {
+                setCurrentScreen(screenId);
+                setMobileMenuOpen(false);
+            };
+
+            if (currentScreen === 'cover') {
+                return <CoverScreen onStart={() => setCurrentScreen('menu')} />;
+            }
+
+            return (
+                <div className="min-h-screen flex font-sans text-gray-900">
+                    
+                    <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white shadow-sm flex items-center justify-between px-4 z-50">
+                        <div className="flex items-center gap-2 text-purple-800 font-bold text-lg">
+                            <i className="ph ph-activity text-[24px]"></i>
+                            Guia Implantação
+                        </div>
+                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-gray-600">
+                            <i className={`ph ${mobileMenuOpen ? 'ph-x' : 'ph-list'} text-[24px]`}></i>
+                        </button>
+                    </div>
+
+                    <aside className={`fixed lg:static top-16 lg:top-0 left-0 h-[calc(100vh-4rem)] lg:h-screen w-72 bg-white border-r border-gray-200 z-40 transition-transform duration-300 ease-in-out flex flex-col ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+                        <div className="hidden lg:flex items-center gap-3 p-6 border-b border-gray-100 text-purple-800">
+                            <div className="bg-black p-2 rounded-xl text-white flex items-center justify-center">
+                                <i className="ph ph-activity text-[24px]"></i>
+                            </div>
+                            <div>
+                                <h1 className="font-extrabold text-lg leading-tight">Guia Implantação</h1>
+                                <p className="text-xs text-purple-600/70 font-semibold">Operacional Saúde</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+                            {MENU_ITEMS.map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleNav(item.id)}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left font-medium
+                                        ${currentScreen === item.id 
+                                            ? 'bg-purple-50 text-purple-700 shadow-sm border border-purple-100' 
+                                            : 'text-gray-600 hover:bg-gray-50 hover:text-purple-600'}`}
+                                >
+                                    <i className={`ph ${item.icon} text-[20px] ${currentScreen === item.id ? 'text-purple-600' : 'text-gray-400'}`}></i>
+                                    {item.label}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        <div className="p-6 border-t border-gray-100 text-xs text-gray-400 text-center">
+                            Versão 1.0.3 (HTML) • Atualizado 2026
+                        </div>
+                    </aside>
+
+                    <main className="flex-1 flex flex-col h-screen overflow-hidden pt-16 lg:pt-0 relative bg-slate-50">
+                        <header className="hidden lg:flex items-center justify-between px-10 py-5 bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-30">
+                            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                {MENU_ITEMS.find(i => i.id === currentScreen)?.icon && 
+                                    <i className={`ph ${MENU_ITEMS.find(i => i.id === currentScreen).icon} text-[24px] text-purple-600`}></i>}
+                                {MENU_ITEMS.find(i => i.id === currentScreen)?.label}
+                            </h2>
+                            <div className="flex items-center gap-4">
+                                <span className="flex items-center gap-2 text-sm font-medium bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                    Sistema Operacional Online
+                                </span>
+                            </div>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-6 md:p-10 scroll-smooth">
+                            {currentScreen === 'menu' && <MenuScreen setScreen={handleNav} />}
+                            {currentScreen === 'pme' && <FlowTemplate title="Fluxo Plano PME" icon="ph-buildings" flowData={FLOW_PME} />}
+                            {currentScreen === 'adesao' && <FlowTemplate title="Fluxo Plano Adesão" icon="ph-users" flowData={FLOW_ADESAO} />}
+                            {currentScreen === 'individual' && <FlowTemplate title="Fluxo Plano Individual" icon="ph-user" flowData={FLOW_INDIVIDUAL} />}
+                            {currentScreen === 'checklist' && <ChecklistScreen />}
+                            {currentScreen === 'kanban' && <KanbanScreen cards={cards} setCards={setCards} />}
+                            {currentScreen === 'dashboard' && <DashboardScreen cards={cards} setCards={setCards} />}
+                            {currentScreen === 'alertas' && <AlertsScreen />}
+                            {currentScreen === 'mensagens' && <MessagesScreen />}
+                            {currentScreen === 'faq' && <FAQScreen />}
+                            {currentScreen === 'final' && <FinalScreen />}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
